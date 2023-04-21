@@ -1,3 +1,15 @@
+use std::ops::Add;
+
+use camera::Camera;
+use color::Color;
+use image::{Image, Ppm};
+use point::Point;
+use rand::Rng;
+use scene::Scene;
+use sphere::Sphere;
+use vec::Vec;
+
+mod camera;
 mod color;
 mod image;
 mod point;
@@ -7,49 +19,44 @@ mod shape;
 mod sphere;
 mod vec;
 
-fn main() {}
+fn sample(camera: &Camera, scene: &Scene, u: f32, v: f32) -> Vec {
+    let ray = camera.get_ray(u, v);
+    scene
+        .hit(ray, 0., f32::MAX)
+        .map(|x| 0.5 * (x.n + Vec::from([1., 1., 1.])))
+        .unwrap_or({
+            let unit_direct = ray.direct.to_unit();
+            let t = 0.5 * (unit_direct.y() + 1.);
+            (1. - t) * Vec::from([1., 1., 1.]) + t * Vec::from([0.5, 0.7, 1.])
+        })
+}
 
-#[cfg(test)]
-mod tests {
-    use crate::image::{Image, Ppm};
-    use crate::{color::Color, point::Point, ray::Ray, scene::Scene, sphere::Sphere, vec::Vec};
+fn main() {
+    let camera = Camera::new();
+    let mut image = Ppm::new();
+    let mut scene = Scene::new();
 
-    #[test]
-    fn test_chap05() {
-        let mut image = Ppm::new();
+    scene.push(Sphere::new(Point::from([0., 0., -1.]), 0.5));
+    scene.push(Sphere::new(Point::from([0., -100.5, -1.]), 100.));
 
-        let origin = Point::from([0., 0., 0.]);
-        let lower_left = Vec::from([-2., -1., -1.]);
-        let horizontal = Vec::from([4., 0., 0.]);
-        let vertical = Vec::from([0., 2., 0.]);
+    const SAMPLES_PER_PIXEL: u32 = 100;
+    let mut rng = rand::thread_rng();
 
-        let mut scene = Scene::new();
-        scene.push(Sphere::new(Point::from([0., 0., -1.]), 0.5));
-        scene.push(Sphere::new(Point::from([0., -100.5, -1.]), 100.));
+    for j in 0..image.height {
+        for i in 0..image.width {
+            let color_vec = (0..SAMPLES_PER_PIXEL)
+                .map(|_| {
+                    let u = (i as f32 + rng.gen::<f32>()) / (image.width as f32 - 1.);
+                    let v = (j as f32 + rng.gen::<f32>()) / (image.height as f32 - 1.);
+                    sample(&camera, &scene, u, v)
+                })
+                .fold(Vec::new(), Add::add)
+                / (SAMPLES_PER_PIXEL as f32);
 
-        for j in 0..image.height {
-            for i in 0..image.width {
-                let u = (i as f32) / (image.width as f32);
-                let v = (j as f32) / (image.height as f32);
-                let ray = Ray::from(origin, lower_left + u * horizontal + v * vertical);
-
-                let color_vec = scene
-                    .hit(ray, 0., f32::MAX)
-                    .map(|x| 0.5 * (x.n + Vec::from([1., 1., 1.])))
-                    .unwrap_or({
-                        let unit_direct = ray.direct.to_unit();
-                        let t = 0.5 * (unit_direct.y() + 1.);
-                        (1. - t) * Vec::from([1., 1., 1.]) + t * Vec::from([0.5, 0.7, 1.])
-                    });
-
-                let color = Color::from(color_vec);
-                image.plot(j as usize, i as usize, color);
-            }
+            let color = Color::from(color_vec);
+            image.plot(j, i, color);
         }
-
-        assert_eq!(image.height, 100);
-        assert_eq!(image.width, 200);
-
-        image.to_file("/tmp/chap05.ppm").expect("to_file err");
     }
+
+    image.to_file("/tmp/chap05.ppm").expect("to_file err");
 }

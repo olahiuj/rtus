@@ -31,6 +31,16 @@ pub struct HitRecord {
     pub t: f32,
     pub p: Point,
     pub n: Vec,
+    is_front: bool,
+}
+
+impl HitRecord {
+    pub fn new(ray: Ray, t: f32, outward_n: Vec) -> HitRecord {
+        let p = ray.at(t);
+        let is_front = (ray.direct * outward_n) < 0.;
+        let n = if is_front { outward_n } else { -outward_n };
+        HitRecord { t, p, n, is_front }
+    }
 }
 
 #[cfg(test)]

@@ -1,5 +1,5 @@
 use std::{
-    fs::{self, File},
+    fs::File,
     io::{Error, Write},
     path::Path,
 };
@@ -14,19 +14,24 @@ pub trait Image {
 
 #[derive(Debug)]
 pub struct Ppm {
-    pub width: u32,  // x
-    pub height: u32, // y
+    pub width: usize,  // x
+    pub height: usize, // y
     max_color: u32,
     pixels: Vec<Vec<Color>>,
 }
 
 impl Ppm {
+    const DEFAULT_WIDTH: usize = 400;
+    const DEFAULT_ASPECT_RATIO: f32 = 16. / 9.;
+
     pub fn new() -> Ppm {
+        let width = Ppm::DEFAULT_WIDTH;
+        let height = (Ppm::DEFAULT_WIDTH as f32 / Ppm::DEFAULT_ASPECT_RATIO) as usize;
         Ppm {
-            width: 200,
-            height: 100,
+            width,
+            height,
             max_color: 255,
-            pixels: vec![vec![Color::default(); 200]; 100],
+            pixels: vec![vec![Color::default(); width]; height],
         }
     }
 
@@ -48,7 +53,7 @@ impl Image for Ppm {
         for j in 1..=self.height {
             let j = self.height - j;
             for i in 0..self.width {
-                let color = self.pixels[j as usize][i as usize];
+                let color = self.pixels[j][i];
                 writeln!(file, "{color}")?;
             }
         }
@@ -64,7 +69,7 @@ impl Image for Ppm {
         for j in 1..=self.height {
             let j = self.height - j;
             for i in 0..self.width {
-                let color = self.pixels[j as usize][i as usize];
+                let color = self.pixels[j][i];
                 println!("{color}");
             }
         }

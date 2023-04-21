@@ -33,10 +33,6 @@ impl Shape for Sphere {
             }
         }
         let p = ray.at(t);
-        Some(HitRecord {
-            t,
-            p,
-            n: (p - self.center).to_unit(),
-        })
+        Some(HitRecord::new(ray, t, (p - self.center) / self.radius))
     }
 }
