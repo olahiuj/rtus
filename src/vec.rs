@@ -13,6 +13,23 @@ impl Vec {
         Vec::default()
     }
 
+    pub const fn new_const(coeff: [f32; 3]) -> Vec {
+        Vec { coeff }
+    }
+
+    pub fn new_rand_unit_sphere() -> Vec {
+        loop {
+            let vec = Vec::from([
+                rand::random::<f32>() * 2. - 1.,
+                rand::random::<f32>() * 2. - 1.,
+                rand::random::<f32>() * 2. - 1.,
+            ]);
+            if vec.len() <= 1. {
+                break vec;
+            }
+        }
+    }
+
     pub fn x_mut(&mut self) -> &mut f32 {
         self.at_mut(0)
     }
@@ -50,6 +67,22 @@ impl Vec {
             self.y() * rhs.z() - self.z() * rhs.y(),
             self.z() * rhs.x() - self.x() * rhs.z(),
             self.x() * rhs.y() - self.y() * rhs.x(),
+        ])
+    }
+
+    pub fn reflect(v: Vec, n: Vec) -> Vec {
+        v + 2. * (v * n).abs() * n
+    }
+
+    pub fn near_zero(&self) -> bool {
+        self.len() < 1e-8
+    }
+
+    pub fn scale(&self, rhs: Vec) -> Vec {
+        Vec::from([
+            self.x().mul(rhs.x()),
+            self.y().mul(rhs.y()),
+            self.z().mul(rhs.z()),
         ])
     }
 
@@ -185,7 +218,17 @@ mod tests {
         assert_eq!(v1_v2.z(), 0.);
         assert_eq!((2. * v1).z(), 8.);
         assert_eq!((v1 / 2.).z(), 2.);
-        assert_eq!(v1 * v2, 22.)
+        assert_eq!(v1 * v2, 22.);
+
+        let v2_v1 = v1 - v2;
+        assert_eq!(v2_v1.x(), -4.);
+
+        let vi = Vec::from([1., 1., -1.]);
+        let n = Vec::from([0., 0., 1.]);
+        let r = Vec::reflect(vi, n);
+        assert_eq!(r.at(0), 1.);
+        assert_eq!(r.at(1), 1.);
+        assert_eq!(r.at(2), 1.);
     }
 
     #[test]

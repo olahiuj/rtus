@@ -1,4 +1,4 @@
-use crate::{point::Point, vec::Vec};
+use crate::{material::Material, point::Point, vec::Vec};
 
 /* The struct for rays
  * A ray can be represented by giving its origin and its direction vector.
@@ -11,13 +11,6 @@ pub struct Ray {
 }
 
 impl Ray {
-    pub fn new() -> Ray {
-        Ray {
-            origin: Point::new(),
-            direct: Vec::new(),
-        }
-    }
-
     pub fn from(origin: Point, direct: Vec) -> Ray {
         Ray { origin, direct }
     }
@@ -27,19 +20,26 @@ impl Ray {
     }
 }
 
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub t: f32,
     pub p: Point,
     pub n: Vec,
+    pub material: &'a dyn Material,
     is_front: bool,
 }
 
-impl HitRecord {
-    pub fn new(ray: Ray, t: f32, outward_n: Vec) -> HitRecord {
+impl<'a> HitRecord<'a> {
+    pub fn new(ray: Ray, t: f32, outward_n: Vec, material: &dyn Material) -> HitRecord {
         let p = ray.at(t);
         let is_front = (ray.direct * outward_n) < 0.;
         let n = if is_front { outward_n } else { -outward_n };
-        HitRecord { t, p, n, is_front }
+        HitRecord {
+            t,
+            p,
+            n,
+            is_front,
+            material,
+        }
     }
 }
 

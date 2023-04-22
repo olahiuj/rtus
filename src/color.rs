@@ -8,10 +8,6 @@ pub struct Color {
 }
 
 impl Color {
-    pub fn new() -> Color {
-        Color { coeff: [0, 0, 0] }
-    }
-
     pub fn r_mut(&mut self) -> &mut u32 {
         self.at_mut(0)
     }
@@ -60,9 +56,9 @@ impl From<[u32; 3]> for Color {
 impl From<Vec> for Color {
     fn from(value: Vec) -> Self {
         Color::from([
-            (255.99 * value.at(0)) as u32,
-            (255.99 * value.at(1)) as u32,
-            (255.99 * value.at(2)) as u32,
+            (255.99 * value.at(0).sqrt()) as u32,
+            (255.99 * value.at(1).sqrt()) as u32,
+            (255.99 * value.at(2).sqrt()) as u32,
         ])
     }
 }
