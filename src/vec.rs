@@ -1,5 +1,6 @@
 use std::{
     fmt::Display,
+    iter::Sum,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
@@ -72,6 +73,13 @@ impl Vec {
 
     pub fn reflect(v: Vec, n: Vec) -> Vec {
         v + 2. * (v * n).abs() * n
+    }
+
+    pub fn refract(v: Vec, n: Vec, refract_ratio: f32) -> Vec {
+        let cos_theta = f32::min(-v * n, 1.);
+        let perp = refract_ratio * (v + cos_theta * n);
+        let parl = -f32::sqrt(f32::abs(1. - perp * perp)) * n;
+        return perp + parl;
     }
 
     pub fn near_zero(&self) -> bool {
@@ -201,6 +209,12 @@ impl Default for Vec {
         Vec {
             coeff: [0., 0., 0.],
         }
+    }
+}
+
+impl Sum for Vec {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.reduce(Vec::add).unwrap()
     }
 }
 

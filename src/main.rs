@@ -1,11 +1,11 @@
 use camera::Camera;
 use color::Color;
 use image::{Image, Ppm};
+use indicatif::ProgressBar;
 use point::Point;
 use ray::Ray;
 use scene::Scene;
 use shape::Sphere;
-use std::ops::Add;
 use vec::Vec;
 
 mod camera;
@@ -58,7 +58,7 @@ fn main() {
     ));
     scene.push(Sphere::new(
         Point::from([-1., 0., -1.]),
-        0.5,
+        -0.4,
         &material::LEFT_MATERIAL,
     ));
     scene.push(Sphere::new(
@@ -67,21 +67,23 @@ fn main() {
         &material::RIGHT_MATERIAL,
     ));
 
+    let bar = ProgressBar::new(image.height as u64);
     for j in 0..image.height {
         for i in 0..image.width {
-            let color_vec = (0..SAMPLES_PER_PIXEL)
+            let color_vec: Vec = (0..SAMPLES_PER_PIXEL)
                 .map(|_| {
                     let u = (i as f32 + rand::random::<f32>()) / (image.width as f32 - 1.);
                     let v = (j as f32 + rand::random::<f32>()) / (image.height as f32 - 1.);
                     sample(camera.get_ray(u, v), &scene, 0)
                 })
-                .fold(Vec::new(), Add::add)
-                / (SAMPLES_PER_PIXEL as f32);
+                .sum();
 
-            let color = Color::from(color_vec);
+            let color = Color::from(color_vec / (SAMPLES_PER_PIXEL as f32));
             image.plot(j, i, color);
         }
+        bar.inc(1);
     }
 
     image.to_file("/tmp/fig.ppm").expect("to_file err");
+    bar.finish();
 }

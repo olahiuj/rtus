@@ -1,6 +1,5 @@
-use std::fmt::Display;
-
 use crate::vec::Vec;
+use std::fmt::Display;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Color {
@@ -8,18 +7,6 @@ pub struct Color {
 }
 
 impl Color {
-    pub fn r_mut(&mut self) -> &mut u32 {
-        self.at_mut(0)
-    }
-
-    pub fn g_mut(&mut self) -> &mut u32 {
-        self.at_mut(1)
-    }
-
-    pub fn b_mut(&mut self) -> &mut u32 {
-        self.at_mut(2)
-    }
-
     pub fn r(&self) -> u32 {
         self.at(0)
     }
@@ -30,10 +17,6 @@ impl Color {
 
     pub fn b(&self) -> u32 {
         self.at(2)
-    }
-
-    pub fn at_mut(&mut self, index: usize) -> &mut u32 {
-        &mut self.coeff[index]
     }
 
     pub fn at(&self, index: usize) -> u32 {
@@ -56,9 +39,9 @@ impl From<[u32; 3]> for Color {
 impl From<Vec> for Color {
     fn from(value: Vec) -> Self {
         Color::from([
-            (255.99 * value.at(0).sqrt()) as u32,
-            (255.99 * value.at(1).sqrt()) as u32,
-            (255.99 * value.at(2).sqrt()) as u32,
+            (255.99 * value.x().sqrt()) as u32,
+            (255.99 * value.y().sqrt()) as u32,
+            (255.99 * value.z().sqrt()) as u32,
         ])
     }
 }

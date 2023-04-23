@@ -30,13 +30,14 @@ impl<'a> Shape for Sphere<'a> {
         let a = ray.direct * ray.direct;
         let b = oc * ray.direct;
         let c = oc * oc - self.radius * self.radius;
+
         let discriminant = b * b - a * c;
         if discriminant < 0. {
             return None;
         }
-        let t = (-b - discriminant.sqrt()) / a;
+        let mut t = (-b - discriminant.sqrt()) / a;
         if t > t_max || t < t_min {
-            let t = (-b + discriminant.sqrt()) / a;
+            t = (-b + discriminant.sqrt()) / a;
             if t > t_max || t < t_min {
                 return None;
             }
